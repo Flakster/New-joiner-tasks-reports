@@ -29,9 +29,26 @@ app.get('/top/:number/:stack', async (req,res)=>{
   try {
     const response = await request()
     const {tasks} = response.body
+    
+    // Insert the server response into an array
+    const stackTasks = []
     tasks.forEach((e) =>{
-      console.log(`Name ==> ${e.name}, done: ${e.done}`)
+      let joinerStack = stackTasks.find( a => (a[0] == e.newJoinerId) && a[1] == e.stack)
+      if (joinerStack) joinerStack[2]++
+      else if (e.newJoinerId !== null && e.done ) stackTasks.push([e.newJoinerId,e.stack,1])
     })
+
+    //console.log (stackTasks.filter(a => a[1]==stack).sort((a,b) => a[2] > b[2]))
+    const topArray = stackTasks.filter(a => a[1]==stack).sort((a,b) => b[2] - a[2]) 
+    let index = 0
+    while (index < number){
+      if (index < topArray.length){
+        console.log(`${index + 1}. \t${topArray[index][0]}: \t${topArray[index][2]} `)
+      }else{
+        console.log(`${index + 1}. empty`)
+      }
+      index++
+    } 
   } catch (error) {
     console.log(error)
   }
