@@ -1,62 +1,51 @@
 const express = require('express');
 const app = express();
 const config = require('./utils/config');
-const request = require('./helpers/data');
+const {
+  top,
+  countOfTasksByJoiner,
+  listOfTasksByJoiner,
+  daysTofinish
+} = require('./helpers/arrays');
 
 // Settings
 app.set('port', config.PORT)
 
 // Routes
 
-app.get('/', async (req,res) =>{
-  try {
-    const response = await request()
-    const {tasks} = response.body
-    tasks.forEach((e) =>{
-      console.log(`Name ==> ${e.name}, done: ${e.done}`)
-    })
-  } catch (error) {
-    console.log(error)
-  }
-  res.end('Hello from reports microservice');
-})
-
 // Top ‘N” joiners by “X” stack
 app.get('/top/:number/:stack', async (req,res)=>{
   const {number,stack} = req.params
-  res.send(`This is the top ${number} of ${stack} new joiners`)
+  res.send(`Top ${number} of ${stack} new joiners`)
   console.log(`This is the top ${number} of ${stack} new joiners`)
-  try {
-    const response = await request()
-    const {tasks} = response.body
-    
-    // Insert the server response into an array
-    const stackTasks = []
-    tasks.forEach((e) =>{
-      let joinerStack = stackTasks.find( a => (a[0] == e.newJoinerId) && a[1] == e.stack)
-      if (joinerStack) joinerStack[2]++
-      else if (e.newJoinerId !== null && e.done ) stackTasks.push([e.newJoinerId,e.stack,1])
-    })
-
-    //console.log (stackTasks.filter(a => a[1]==stack).sort((a,b) => a[2] > b[2]))
-    const topArray = stackTasks.filter(a => a[1]==stack).sort((a,b) => b[2] - a[2]) 
-    let index = 0
-    while (index < number){
-      if (index < topArray.length){
-        console.log(`${index + 1}. \t${topArray[index][0]}: \t${topArray[index][2]} `)
-      }else{
-        console.log(`${index + 1}. empty`)
-      }
-      index++
-    } 
-  } catch (error) {
-    console.log(error)
-  }
-
+  await top(number,stack)
 })
-// Top ‘N” joiners by “X” stack (order by amount of task completed).
+
 // Tasks completed and pending by joiner.
+app.get('/count_tasks_by_joiner', async(req,res) =>{
+  console.log('Count of tasks completed / uncompleted by joiner')
+  const tasksByJoiner = await countOfTasksByJoiner()
+  tasksByJoiner.forEach(e =>{
+    console.log(`${e[0]} ${e[1]} ${e[2]}`)
+  })
+  res.send('The count of completed/ uncompleted tasks by joiner has been created')
+})
+
 // Task completed an uncompleted by “X” joiner.
+app.get('/list_tasks_by_joiner/:id', async(req, res) => {
+  const {id} = req.params
+  const tasksByJoiner = await listOfTasksByJoiner(id)
+  console.log(tasksByJoiner)
+  res.send('OK')
+})
+
 // Days left to complete the tasks by joiner
+app.get('/days_joiner/:id', async(req, res) => {
+  const {id} = req.params
+  const daysLeft = await daysTofinish(id)
+  console.log(daysLeft)
+  res.send('OK')
+})
+
 
 module.exports = app;
