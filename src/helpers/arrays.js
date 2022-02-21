@@ -56,15 +56,17 @@ const top = async(n,stack) => {
   })
   const sortedArray = tasksByStack.sort( (a,b) => b[1] - a[1] )
   let index = 0
+  const resultingObject = {}
   while (index < n){
     if (index < sortedArray.length){
       let joinerId = sortedArray[index][0]
-      console.log(`${index+1}. ${joinersObj[joinerId]} ${sortedArray[index][1]}`)
+      resultingObject[index+1] = [joinersObj[joinerId], sortedArray[index][1]]
     }else{
-      console.log(`${index+1}. ** Empty**`)
+      resultingObject[index +1] = ['Empty', 'n/a']
     }
     index++
   }
+  return resultingObject
 }
 
 const countOfTasksByJoiner = async() => {
@@ -97,7 +99,6 @@ const countOfTasksByJoiner = async() => {
   const resultingArray = []
   tasksByJoiner.forEach( e => {
     if (joinersObj[e[0]]) {
-      // console.log(`${joinersObj[e[0]]} ${e[1]} ${e[2]} `)
       resultingArray.push([joinersObj[e[0]], e[1], e[2]])
     }
   })
